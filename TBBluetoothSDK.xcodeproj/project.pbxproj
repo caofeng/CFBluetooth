@@ -1,0 +1,439 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 50;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		34999BB1219C167F00E46B8A /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 34999BB0219C167F00E46B8A /* AppDelegate.m */; };
+		34999BB4219C167F00E46B8A /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 34999BB3219C167F00E46B8A /* ViewController.m */; };
+		34999BB7219C167F00E46B8A /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34999BB5219C167F00E46B8A /* Main.storyboard */; };
+		34999BB9219C168100E46B8A /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 34999BB8219C168100E46B8A /* Assets.xcassets */; };
+		34999BBC219C168100E46B8A /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 34999BBA219C168100E46B8A /* LaunchScreen.storyboard */; };
+		34999BBF219C168100E46B8A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 34999BBE219C168100E46B8A /* main.m */; };
+		34999BCC219D139C00E46B8A /* TBCentralManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 34999BCB219D139C00E46B8A /* TBCentralManager.m */; };
+		34999BCF219D502000E46B8A /* TBBLEManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 34999BCE219D502000E46B8A /* TBBLEManager.m */; };
+		349C4EA721A3DC24006CBDA8 /* UIViewController+HUD.m in Sources */ = {isa = PBXBuildFile; fileRef = 349C4EA621A3DC24006CBDA8 /* UIViewController+HUD.m */; };
+		349C4EAE21A3ECFC006CBDA8 /* BL1175_V163bf.bin in Resources */ = {isa = PBXBuildFile; fileRef = 349C4EAD21A3ECFC006CBDA8 /* BL1175_V163bf.bin */; };
+		34BC1C9621A24758009EA038 /* Readme.md in Resources */ = {isa = PBXBuildFile; fileRef = 34BC1C9521A24758009EA038 /* Readme.md */; };
+		8BBBDDDC6615566CAC423F13 /* libPods-TBBluetoothSDK.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 641029DBE7DF08A72563F783 /* libPods-TBBluetoothSDK.a */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		34999BAC219C167F00E46B8A /* TBBluetoothSDK.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TBBluetoothSDK.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		34999BAF219C167F00E46B8A /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		34999BB0219C167F00E46B8A /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		34999BB2219C167F00E46B8A /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		34999BB3219C167F00E46B8A /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		34999BB6219C167F00E46B8A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		34999BB8219C168100E46B8A /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		34999BBB219C168100E46B8A /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		34999BBD219C168100E46B8A /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		34999BBE219C168100E46B8A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		34999BCA219D139C00E46B8A /* TBCentralManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TBCentralManager.h; sourceTree = "<group>"; };
+		34999BCB219D139C00E46B8A /* TBCentralManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TBCentralManager.m; sourceTree = "<group>"; };
+		34999BCD219D502000E46B8A /* TBBLEManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TBBLEManager.h; sourceTree = "<group>"; };
+		34999BCE219D502000E46B8A /* TBBLEManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = TBBLEManager.m; sourceTree = "<group>"; };
+		349C4EA421A38CCD006CBDA8 /* TBBluetooth.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TBBluetooth.h; sourceTree = "<group>"; };
+		349C4EA521A3DC24006CBDA8 /* UIViewController+HUD.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "UIViewController+HUD.h"; sourceTree = "<group>"; };
+		349C4EA621A3DC24006CBDA8 /* UIViewController+HUD.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "UIViewController+HUD.m"; sourceTree = "<group>"; };
+		349C4EAD21A3ECFC006CBDA8 /* BL1175_V163bf.bin */ = {isa = PBXFileReference; lastKnownFileType = archive.macbinary; path = BL1175_V163bf.bin; sourceTree = "<group>"; };
+		34BC1C9521A24758009EA038 /* Readme.md */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = net.daringfireball.markdown; path = Readme.md; sourceTree = "<group>"; };
+		34BC1C9721A247D7009EA038 /* TBConfiguration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TBConfiguration.h; sourceTree = "<group>"; };
+		641029DBE7DF08A72563F783 /* libPods-TBBluetoothSDK.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-TBBluetoothSDK.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		94A0A44F8A566CA019216954 /* Pods-TBBluetoothSDK.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TBBluetoothSDK.release.xcconfig"; path = "Pods/Target Support Files/Pods-TBBluetoothSDK/Pods-TBBluetoothSDK.release.xcconfig"; sourceTree = "<group>"; };
+		ADB8294B221B3B18453AE5EA /* Pods-TBBluetoothSDK.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-TBBluetoothSDK.debug.xcconfig"; path = "Pods/Target Support Files/Pods-TBBluetoothSDK/Pods-TBBluetoothSDK.debug.xcconfig"; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		34999BA9219C167F00E46B8A /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8BBBDDDC6615566CAC423F13 /* libPods-TBBluetoothSDK.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		34999BA3219C167F00E46B8A = {
+			isa = PBXGroup;
+			children = (
+				34999BAE219C167F00E46B8A /* TBBluetoothSDK */,
+				34999BAD219C167F00E46B8A /* Products */,
+				3670232C8687651200ED3A7B /* Pods */,
+				4A743D84747772BB983C4447 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		34999BAD219C167F00E46B8A /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				34999BAC219C167F00E46B8A /* TBBluetoothSDK.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		34999BAE219C167F00E46B8A /* TBBluetoothSDK */ = {
+			isa = PBXGroup;
+			children = (
+				349C4EAD21A3ECFC006CBDA8 /* BL1175_V163bf.bin */,
+				34999BAF219C167F00E46B8A /* AppDelegate.h */,
+				34999BB0219C167F00E46B8A /* AppDelegate.m */,
+				34999BB2219C167F00E46B8A /* ViewController.h */,
+				34999BB3219C167F00E46B8A /* ViewController.m */,
+				349C4EA521A3DC24006CBDA8 /* UIViewController+HUD.h */,
+				349C4EA621A3DC24006CBDA8 /* UIViewController+HUD.m */,
+				34999BC9219D137000E46B8A /* TBBluetooth */,
+				34999BB5219C167F00E46B8A /* Main.storyboard */,
+				34999BB8219C168100E46B8A /* Assets.xcassets */,
+				34999BBA219C168100E46B8A /* LaunchScreen.storyboard */,
+				34999BBD219C168100E46B8A /* Info.plist */,
+				34999BBE219C168100E46B8A /* main.m */,
+			);
+			path = TBBluetoothSDK;
+			sourceTree = "<group>";
+		};
+		34999BC9219D137000E46B8A /* TBBluetooth */ = {
+			isa = PBXGroup;
+			children = (
+				34BC1C9521A24758009EA038 /* Readme.md */,
+				34999BCD219D502000E46B8A /* TBBLEManager.h */,
+				34999BCE219D502000E46B8A /* TBBLEManager.m */,
+				349C4EA421A38CCD006CBDA8 /* TBBluetooth.h */,
+				34999BCA219D139C00E46B8A /* TBCentralManager.h */,
+				34999BCB219D139C00E46B8A /* TBCentralManager.m */,
+				34BC1C9721A247D7009EA038 /* TBConfiguration.h */,
+			);
+			path = TBBluetooth;
+			sourceTree = "<group>";
+		};
+		3670232C8687651200ED3A7B /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				ADB8294B221B3B18453AE5EA /* Pods-TBBluetoothSDK.debug.xcconfig */,
+				94A0A44F8A566CA019216954 /* Pods-TBBluetoothSDK.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
+		4A743D84747772BB983C4447 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				641029DBE7DF08A72563F783 /* libPods-TBBluetoothSDK.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		34999BAB219C167F00E46B8A /* TBBluetoothSDK */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 34999BC2219C168100E46B8A /* Build configuration list for PBXNativeTarget "TBBluetoothSDK" */;
+			buildPhases = (
+				1FFF832F88A772778DDED868 /* [CP] Check Pods Manifest.lock */,
+				34999BA8219C167F00E46B8A /* Sources */,
+				34999BA9219C167F00E46B8A /* Frameworks */,
+				34999BAA219C167F00E46B8A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = TBBluetoothSDK;
+			productName = TBBluetoothSDK;
+			productReference = 34999BAC219C167F00E46B8A /* TBBluetoothSDK.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		34999BA4219C167F00E46B8A /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 1010;
+				ORGANIZATIONNAME = "深圳拓邦股份有限公司";
+				TargetAttributes = {
+					34999BAB219C167F00E46B8A = {
+						CreatedOnToolsVersion = 10.1;
+						SystemCapabilities = {
+							com.apple.BackgroundModes = {
+								enabled = 1;
+							};
+						};
+					};
+				};
+			};
+			buildConfigurationList = 34999BA7219C167F00E46B8A /* Build configuration list for PBXProject "TBBluetoothSDK" */;
+			compatibilityVersion = "Xcode 9.3";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 34999BA3219C167F00E46B8A;
+			productRefGroup = 34999BAD219C167F00E46B8A /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				34999BAB219C167F00E46B8A /* TBBluetoothSDK */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		34999BAA219C167F00E46B8A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				34BC1C9621A24758009EA038 /* Readme.md in Resources */,
+				34999BBC219C168100E46B8A /* LaunchScreen.storyboard in Resources */,
+				34999BB9219C168100E46B8A /* Assets.xcassets in Resources */,
+				349C4EAE21A3ECFC006CBDA8 /* BL1175_V163bf.bin in Resources */,
+				34999BB7219C167F00E46B8A /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		1FFF832F88A772778DDED868 /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+				"${PODS_PODFILE_DIR_PATH}/Podfile.lock",
+				"${PODS_ROOT}/Manifest.lock",
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+				"$(DERIVED_FILE_DIR)/Pods-TBBluetoothSDK-checkManifestLockResult.txt",
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n# This output is used by Xcode 'outputs' to avoid re-running this script phase.\necho \"SUCCESS\" > \"${SCRIPT_OUTPUT_FILE_0}\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		34999BA8219C167F00E46B8A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				349C4EA721A3DC24006CBDA8 /* UIViewController+HUD.m in Sources */,
+				34999BB4219C167F00E46B8A /* ViewController.m in Sources */,
+				34999BBF219C168100E46B8A /* main.m in Sources */,
+				34999BB1219C167F00E46B8A /* AppDelegate.m in Sources */,
+				34999BCC219D139C00E46B8A /* TBCentralManager.m in Sources */,
+				34999BCF219D502000E46B8A /* TBBLEManager.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		34999BB5219C167F00E46B8A /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34999BB6219C167F00E46B8A /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		34999BBA219C168100E46B8A /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				34999BBB219C168100E46B8A /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		34999BC0219C168100E46B8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+			};
+			name = Debug;
+		};
+		34999BC1219C168100E46B8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 12.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		34999BC3219C168100E46B8A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = ADB8294B221B3B18453AE5EA /* Pods-TBBluetoothSDK.debug.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2F9X3HNG2T;
+				INFOPLIST_FILE = TBBluetoothSDK/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Topband.com.TBBluetoothSDK;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		34999BC4219C168100E46B8A /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = 94A0A44F8A566CA019216954 /* Pods-TBBluetoothSDK.release.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = 2F9X3HNG2T;
+				INFOPLIST_FILE = TBBluetoothSDK/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = Topband.com.TBBluetoothSDK;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		34999BA7219C167F00E46B8A /* Build configuration list for PBXProject "TBBluetoothSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34999BC0219C168100E46B8A /* Debug */,
+				34999BC1219C168100E46B8A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		34999BC2219C168100E46B8A /* Build configuration list for PBXNativeTarget "TBBluetoothSDK" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				34999BC3219C168100E46B8A /* Debug */,
+				34999BC4219C168100E46B8A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 34999BA4219C167F00E46B8A /* Project object */;
+}
