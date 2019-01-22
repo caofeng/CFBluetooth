@@ -22,12 +22,14 @@ NS_ASSUME_NONNULL_BEGIN
 /** init */
 + (void)initSDK;
 
+- (void)setLogOpen:(BOOL)open;
+
 + (instancetype)shareManager;
 
 /**
    return YES if the center device Bluetooth is available
  */
-@property (nonatomic, assign)BOOL enableBluetooth;
+@property (nonatomic, assign)BOOL isBluetoothEnabled;
 
 /**
     connected Peripheral
@@ -48,8 +50,14 @@ NS_ASSUME_NONNULL_BEGIN
 /** callback when scan Bluetooth */
 @property (nonatomic, copy)void(^listPairFoodProcessors)(NSArray< CBPeripheral*> *deviceList);
 
+/** listen to the Bluetooth system setting (enabled / disabled) and call a callback if that changes. */
+@property (nonatomic, copy)void(^bluetoothSettingChanged)(BOOL enabled);
+
 /** callback when find targer device,but do not connect */
 @property (nonatomic, copy)void(^scanTargetDevice)(BOOL found);
+
+/**  a callback that notify the app when the connection state changes */
+@property (nonatomic, copy)void(^connectStateChanged)(TBDeviceConnectState connectState);
 
 /** connect Device */
 - (void)connectResult:(Complemention)complemention;
@@ -82,19 +90,34 @@ NS_ASSUME_NONNULL_BEGIN
 
 - (void)getVersion:(ResultCmd)result;
 
-- (void)getLife:(ResultCmd)result;
+- (void)set_Status:(Byte *)status result:(ResultCmd)result;
 
-- (void)backups:(ResultCmd)result;
+/**
+ @param interval  Unit ms--default:750，not too litter, >=600 is perfect
+ */
+- (void)get_StatusWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback;
+/**
+ @param interval  Unit ms--default:750
+ */
+- (void)getLifeWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback;
+/**
+ @param interval  Unit ms--default:750
+ */
+- (void)backupsWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback;
 
-- (void)get_Status:(ResultCmd)result;
-
+/**
+ @param name  length must < 1 byte
+ */
 - (void)setPhoneName:(NSString *)name result:(ResultCmd)result;
 
 /**
- hardware update
+ fireware update
  @param filePath 文件路径(must available like [NSData dataWithContentsOfFile:filePath])
  */
 - (void)startProgramUpdate:(NSString *)filePath updateprogress:(UpdateProgress)progress;
+
+/** cancel fireware update */
+- (void)cancelProgamUpdate;
 
 @end
 

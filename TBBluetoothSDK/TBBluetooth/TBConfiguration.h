@@ -20,24 +20,16 @@
 
 #endif
 
-/** 蓝牙设备名称前缀 */
+/** Company  do not motify */
 static NSString * const kBlePeripheralNamePre = @"cook expert";
 
-static NSString * const kBlePeripheralIdentifier = @"237D682C-F638-7045-B8C7-94C5706FA54C";
-
-static NSString * const kNotifyServerUUID = @"FF00";
-
-static NSString * const kWriteServerUUID = @"FF00";
-
-
+static NSString * const kWriteServerUUID = @"FFF0";
 // --------
-static NSString * const kReadNotifyCharacteristicUUID = @"FF02";
-// --------
-static NSString * const kWriteCharacteristicUUID = @"49535343-8841-43F4-A8D4-ECBE34729BB3";
+static NSString * const kReadNotifyCharacteristicUUID = @"FFF4";
 // --------
 static NSString * const kWriteNOResponseCharacteristicUUID = @"FF01";
 // -------
-static NSString * const kReadWriteNotiftCharacteristicUUID = @"49535343-ACA3-481C-91EC-D85E28A60318";
+static NSString * const kWriteCharacteristicUUID = @"FFF5";
 
 
 typedef enum : NSUInteger {
@@ -50,21 +42,21 @@ typedef enum : NSUInteger {
 } TBManagerState;
 
 typedef enum : NSUInteger {
-    /** 已断开 */
+    /** disconnect */
     TBDeviceConnectStateDisconnect = 0,
-    /** 连接中 */
+    /** connecting */
     TBDeviceConnectStateConnecting,
-    /** 已连接 */
+    /** connected */
     TBDeviceConnectStateConnected,
-    /** 连接状态未知 */
+    /** unknow */
     TBDeviceConnectStateNone,
     
 } TBDeviceConnectState;
 
-/** 中心设备蓝牙打开 通知*/
+/** mobile open buletooth setting Notification*/
 static NSString * const kTBBluetoothCentralDeviceStateONNotification = @"kTBBluetoothCentralDeviceStateONNotification";
 
-/** 中心设备蓝牙关闭(不可用状态) 通知*/
+//** mobile close buletooth setting Notification*/
 static NSString * const kTBBluetoothCentralDeviceStateOFFNotification = @"kTBBluetoothCentralDeviceStateOFFNotification";
 
 

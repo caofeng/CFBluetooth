@@ -11,6 +11,7 @@
 #import "ViewController.h"
 #import "TBBluetooth.h"
 #import "UIViewController+HUD.h"
+#import "AFNetworking.h"
 
 @interface ViewController ()
 
@@ -33,6 +34,9 @@
     
     UIBarButtonItem *rightItem = [[UIBarButtonItem alloc]initWithTitle:@"固件升级" style:UIBarButtonItemStyleDone target:self action:@selector(rightItemClick)];
     self.navigationItem.rightBarButtonItem = rightItem;
+    
+    UIBarButtonItem *leftItem = [[UIBarButtonItem alloc]initWithTitle:@"扫描设备" style:UIBarButtonItemStyleDone target:self action:@selector(leftItemClick)];
+    self.navigationItem.leftBarButtonItem = leftItem;
     
     
     self.findDeviceLabel = [[UILabel alloc]init];
@@ -83,7 +87,7 @@
     };
     
     
-    NSArray *titleArr = @[@"keyOK",@"keyRight",@"keyRDown",@"keyLDown",@"keyLeft",@"keyBack",@"keyStop",@"keyAuto",@"keyPulse",@"keyPulseUp",@"backups",@"getStatus",@"getLife",@"setPhoneName",@"getVersion"];
+    NSArray *titleArr = @[@"keyOK",@"keyRight",@"keyRDown",@"keyLDown",@"keyLeft",@"keyBack",@"keyStop",@"keyAuto",@"keyPulse",@"keyPulseUp",@"setPhoneName",@"getVersion",@"setStatus",@"shutdown updateProgress"];
     
     for (int i=0; i<titleArr.count; i++) {
         
@@ -95,6 +99,19 @@
         button.tag = 100+i;
         [button addTarget:self action:@selector(buttonClick:) forControlEvents:UIControlEventTouchUpInside];
     }
+
+    
+    [[TBBLEManager shareManager]get_StatusWithInterval:750 callback:^(NSData *data, NSError *error) {
+        NSLog(@"==getStatus=%@",data);
+    }];
+    
+    [[TBBLEManager shareManager]getLifeWithInterval:750 callback:^(NSData *data, NSError *error) {
+        NSLog(@"==getLife=%@",data);
+    }];
+    
+    [[TBBLEManager shareManager]backupsWithInterval:750 callback:^(NSData *data, NSError *error) {
+        NSLog(@"==backups=%@",data);
+    }];
 }
 
 - (void)connectDeviceClick {
@@ -118,6 +135,7 @@
     NSInteger index = button.tag - 100;
     
     if (index == 0) {
+        
         [[TBBLEManager shareManager]keyOk:^(NSData *data, NSError *error) {
             if (error) {
                 self.callbackLabel.text = [error localizedDescription];
@@ -214,35 +232,6 @@
         }];
 
     }else if (index == 10) {
-        [[TBBLEManager shareManager] backups:^(NSData *data, NSError *error) {
-            if (error) {
-                self.callbackLabel.text = [error localizedDescription];
-            } else {
-                self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
-            }
-
-        }];
-
-    }else if (index == 11) {
-        [[TBBLEManager shareManager] get_Status:^(NSData *data, NSError *error) {
-            if (error) {
-                self.callbackLabel.text = [error localizedDescription];
-            } else {
-                self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
-            }
-        }];
-
-    }else if (index == 12) {
-        [[TBBLEManager shareManager] getLife:^(NSData *data, NSError *error) {
-            if (error) {
-                self.callbackLabel.text = [error localizedDescription];
-            } else {
-                self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
-            }
-
-        }];
-
-    }else if (index == 13) {
         
         [[TBBLEManager shareManager] setPhoneName:@"iPhone XS" result:^(NSData *data, NSError *error) {
             
@@ -253,7 +242,7 @@
             }
         }];
 
-    }else if (index == 14) {
+    }else if (index == 11) {
         [[TBBLEManager shareManager] getVersion:^(NSData *data, NSError *error) {
             if (error) {
                 self.callbackLabel.text = [error localizedDescription];
@@ -261,7 +250,46 @@
                 self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
             }
         }];
+    } else if (index == 12) {
+        
+        Byte byte[] = {0xFF};
+        [[TBBLEManager shareManager] set_Status:byte result:^(NSData *data, NSError *error) {
+            if (error) {
+                self.callbackLabel.text = [error localizedDescription];
+            } else {
+                self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
+            }
+        }];
+    } else if (index == 13) {
+        [[TBBLEManager shareManager] cancelProgamUpdate];
+    }
+}
 
+- (void)leftItemClick {
+    
+    if ([TBBLEManager shareManager].isBluetoothEnabled) {
+        
+        [[TBBLEManager shareManager] startScanAllDevices];
+        
+    } else {
+        
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"提示" message:@"未打开蓝牙,去打开？" preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertAction *actionleft =[UIAlertAction actionWithTitle:@"取消" style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
+            
+        }];
+        
+        UIAlertAction *actionright =[UIAlertAction actionWithTitle:@"去打开" style:UIAlertActionStyleDestructive handler:^(UIAlertAction * _Nonnull action) {
+            
+            NSURL *url = [NSURL URLWithString:@"App-Prefs:root=Bluetooth"];
+            if ([[UIApplication sharedApplication]canOpenURL:url]) {
+                [[UIApplication sharedApplication]openURL:url];
+            }
+            
+        }];
+        [alert addAction:actionleft];
+        [alert addAction:actionright];
+        
+        [self presentViewController:alert animated:YES completion:nil];
     }
 }
 
@@ -269,31 +297,36 @@
     
     NSLog(@"固件升级");
     
-    /*
-     
-     once send 120 byte:
-     
-     TEST: iOS12, iPhone6S update 430k file, time 225s  success
-     
-     TEST: iOS11, iPhone7P update 430k file, time 246s  success
-     
-     TEST: iOS10, iPhone6P update 430k file, time 180s  success
-     
-     ----------------------------------------------------------
-     
-     once send 150 byte:
-     
-     TEST: iOS12, iPhone6S update 430k file, time 200s  success
-     
-     TEST: iOS11, iPhone7P update 430k file, time 200s  success
-     
-     TEST: iOS10, iPhone6P update 430k file, time 140s  success
-     
-     */
     
+    [self showHUDLoadingWithText:@"file downloading..."];
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    AFURLSessionManager *manager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
     
-    [[TBBLEManager shareManager] startProgramUpdate:@"" updateprogress:^(NSData *data, CGFloat progress, NSError *error, BOOL updating) {
-       
+    NSURL *URL = [NSURL URLWithString:@"http://plgd0k1hz.bkt.clouddn.com/BL1175.bin"];
+    
+    NSURLRequest *request = [NSURLRequest requestWithURL:URL];
+
+    NSURLSessionDownloadTask *downloadTask = [manager downloadTaskWithRequest:request progress:nil destination:^NSURL *(NSURL *targetPath, NSURLResponse *response) {
+        
+        NSURL *documentsDirectoryURL = [[NSFileManager defaultManager] URLForDirectory:NSDocumentDirectory inDomain:NSUserDomainMask appropriateForURL:nil create:NO error:nil];
+
+        return [documentsDirectoryURL URLByAppendingPathComponent:[response suggestedFilename]];
+        
+    } completionHandler:^(NSURLResponse *response, NSURL *filePath, NSError *error) {
+        [self hideHUD:YES];
+        [self showHUDWithText:@"download success" duration:2];
+        [self updateHardwareFilepath:filePath.path];
+        TBLog(@"File downloaded to: %@", filePath.path);
+    }];
+    
+    [downloadTask resume];
+    
+}
+
+- (void)updateHardwareFilepath:(NSString *)filepath {
+    
+    [[TBBLEManager shareManager] startProgramUpdate:filepath updateprogress:^(NSData *data, CGFloat progress, NSError *error, BOOL updating) {
+        
         if (updating) {
             
             self.callbackLabel.text = [NSString stringWithFormat:@"update progress %.0f %%",progress*100];
@@ -301,6 +334,7 @@
         
         if (!updating && progress >= 1.0) {
             self.callbackLabel.text = @"update success";
+            TBLog(@"升级成功之后需要把在此把文件删除");
         }
     }];
     

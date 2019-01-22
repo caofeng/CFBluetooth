@@ -35,12 +35,30 @@ static const int PROTOCOL_STX_LEN = 1024;
 
 @property (nonatomic, assign)NSTimeInterval updateInterval;
 
+@property (nonatomic, assign)BOOL   openLog;
+
+@property (nonatomic, copy)ResultCmd    getStatusCallback;
+@property (nonatomic, assign)NSTimeInterval getStatusInterval;
+
+@property (nonatomic, copy)ResultCmd    getLifeCallback;
+@property (nonatomic, assign)NSTimeInterval getLifeInterval;
+
+@property (nonatomic, copy)ResultCmd    backupsCallback;
+@property (nonatomic, assign)NSTimeInterval backupsInterval;
+
+@property (nonatomic, strong)NSTimer    *timer;
+
+@property (nonatomic, assign) BOOL shutdownUpdate;
+
 @end
 
 @implementation TBBLEManager
 
 + (void)initSDK {
     [self shareManager];
+}
+- (void)setLogOpen:(BOOL)open {
+    self.openLog = open;
 }
 
 + (instancetype)shareManager {
@@ -57,35 +75,57 @@ static const int PROTOCOL_STX_LEN = 1024;
     if (self) {
         self.centralManager = [[TBCentralManager alloc]init];
         self.centralManager.delegate = self;
+        self.getStatusInterval = 750;
+        self.getLifeInterval = 750;
+        self.backupsInterval = 750;
+
     }
     return self;
 }
 
 - (void)startScanAllDevices {
+    //TBLog(@"Start scanning...");
+    [self printLog:@"Start scanning..."];
     [self.centralManager scanallDevices];
 }
 
 - (void)stopScanDevices {
     [self.centralManager stopScan];
+    //TBLog(@"Stop scanning...");
+    [self printLog:@"Stop scanning..."];
 }
 
 - (void)scanTargetDevice:(CBPeripheral *)peripheral {
     if (peripheral && self.scanTargetDevice) {
+        [self printLog:[NSString stringWithFormat:@"scanTargetDevice found:%@",peripheral.name]];
         self.scanTargetDevice(YES);
+        
         self.connectedPeripheral = peripheral;
+        [self stopScanDevices];
     }
 }
 
 - (void)connectResult:(Complemention)complemention {
+    //TBLog(@"Start connect...");
+    //TBLog(@"connecting...");
+    [self printLog:@"Start connect..."];
+    [self printLog:@"connecting..."];
+
     self.connectResult = complemention;
     [self.centralManager connectDevice];
 }
 
 - (void)disconnect {
     [self.centralManager cancelConnect];
+    if (self.connectStateChanged) {
+        self.connectStateChanged(TBDeviceConnectStateConnecting);
+    }
+    [self printLog:@"disconnecting..."];
+
+    //TBLog(@"disconnecting...");
 }
 
-- (BOOL)enableBluetooth {
+- (BOOL)isBluetoothEnabled {
     return self.centralManager.enableBluetooth;
 }
 
@@ -98,12 +138,29 @@ static const int PROTOCOL_STX_LEN = 1024;
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central {
     
     if (@available(iOS 10.0, *)) {
+        
         if (central.state == CBManagerStatePoweredOn) {
-            [self.centralManager scanallDevices];
+            //[self.centralManager scanallDevices];
+            if (self.bluetoothSettingChanged) {
+                self.bluetoothSettingChanged(YES);
+            }
+        } else {
+            if (self.bluetoothSettingChanged) {
+                self.bluetoothSettingChanged(NO);
+            }
         }
+        
     } else {
+        
         if (central.state == CBCentralManagerStatePoweredOn) {
-            [self.centralManager scanallDevices];
+            //[self.centralManager scanallDevices];
+            if (self.bluetoothSettingChanged) {
+                self.bluetoothSettingChanged(YES);
+            }
+        } else {
+            if (self.bluetoothSettingChanged) {
+                self.bluetoothSettingChanged(NO);
+            }
         }
     }
 }
@@ -117,15 +174,40 @@ static const int PROTOCOL_STX_LEN = 1024;
 /** 连接蓝牙设备失败*/
 - (void)didFailToConnectError:(NSError *)error {
     self.connectResult(error);
+    if (self.connectStateChanged) {
+        self.connectStateChanged(TBDeviceConnectStateDisconnect);
+    }
+    self.isUpdating = NO;
+    [self destoryTimer];
 }
 
 /** 已经断开连接 */
 - (void)didDisconnectError:(NSError *)error {
     //self.connectResult(error);
+    if (self.connectStateChanged) {
+        self.connectStateChanged(TBDeviceConnectStateDisconnect);
+    }
+    //TBLog(@"disconnected...");
+    [self printLog:@"disconnected..."];
+    self.isUpdating = NO;
+    [self destoryTimer];
 }
 /** 成功连接蓝牙设备 */
 - (void)didConnect {
+    [self printLog:@"Connect OK"];
+    //TBLog(@"Connect OK");
     self.connectResult(nil);
+    if (self.connectStateChanged) {
+        self.connectStateChanged(TBDeviceConnectStateConnected);
+    }
+    self.isUpdating = NO;
+    [self printLog:@"Listening to life"];
+    [self printLog:@"Listening to status"];
+    
+    [self destoryTimer];
+    self.timer = [NSTimer scheduledTimerWithTimeInterval:(self.getStatusInterval+self.getLifeInterval+self.backupsInterval)/1000.0 target:self selector:@selector(sendGetStatusCommand) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
+    [self.timer fire];
 }
 
 #pragma Mark -- 业务
@@ -238,49 +320,117 @@ static const int PROTOCOL_STX_LEN = 1024;
     }];
 }
 
-/** 需要回调 */
-- (void)backups:(ResultCmd)result {
+- (void)set_Status:(Byte *)status result:(ResultCmd)result {
     
-    Byte byte[] = {0xA5,0x0E,0xAE};
-    NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    NSData *byteData = [NSData dataWithBytes:status length:sizeof(status)];
+    
+    NSUInteger length = byteData.length+4;
+    Byte byteData_[4] = {};
+    byteData_[0] =(Byte)(Byte)((length & 0x00FF));
+    
+    Byte byte[] = {0xA5,0x10,byteData_[0]};
+    NSMutableData *mudata = [NSMutableData dataWithBytes:byte length:sizeof(byte)];
+    [mudata appendData:byteData];
+    
+    int crc = CRC8_Get((Byte *)[mudata bytes], mudata.length);
+    Byte crcByte[1] = {};
+    crcByte[0] =(Byte)(Byte)((crc & 0x00FF));
+    NSData *crcData = [NSData dataWithBytes:crcByte length:sizeof(crcByte)];
+    [mudata appendData:crcData];
+    
+    [self.centralManager sendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
         if (result) {
             result(data,error);
         }
     }];
-    
 }
 
-- (void)get_Status:(ResultCmd)result {
-    
-    Byte byte[] = {0xA5,0x0F,0x51};
-    NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-        if (result) {
-            result(data,error);
-        }
-    }];
+//...
+- (void)get_StatusWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback {
+    self.getStatusInterval = interval;
+    self.getStatusCallback = callback;
 }
 
-- (void)getLife:(ResultCmd)result {
+- (void)sendGetStatusCommand {
+    __weak typeof(self) weakSelf = self;
     
-    Byte byte[] = {0xA5,0x11,0x5E};
-    NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-        if (result) {
-            result(data,error);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.getStatusInterval/1000.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+            
+            Byte byte[] = {0xA5,0x0F,0x51};
+            
+            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+            
+            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+                
+                if (weakSelf.getStatusCallback) {
+                    weakSelf.getStatusCallback(data,error);
+                }
+                [weakSelf sendGetLifeCommand];
+            }];
         }
-    }];
+    });
+}
+
+- (void)getLifeWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback {
+    //...
+    self.getLifeInterval = interval;
+    self.getLifeCallback = callback;
+}
+
+- (void)sendGetLifeCommand {
+    
+    __weak typeof(self) weakSelf = self;
+    
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((self.getLifeInterval/1000.0) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        
+        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+            
+            Byte byte[] = {0xA5,0x11,0x5E};
+            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+                if (weakSelf.getLifeCallback) {
+                    weakSelf.getLifeCallback(data,error);
+                }
+                [weakSelf sendBackupsCommand];
+            }];
+        }
+        
+    });
+}
+
+- (void)backupsWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback {
+    //..
+    self.backupsInterval = interval;
+    self.backupsCallback = callback;
+}
+
+- (void)sendBackupsCommand {
+    
+    __weak typeof(self) weakSelf = self;
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.backupsInterval/1000.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+            Byte byte[] = {0xA5,0x0E,0xAE};
+            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+                if (weakSelf.backupsCallback) {
+                    weakSelf.backupsCallback(data,error);
+                }
+            }];
+        }
+    });
 }
 
 - (void)setPhoneName:(NSString *)name result:(ResultCmd)result  {
     
     if (name.length <= 0) {
+        //TBLog(@"not device name");
+        [self printLog:@"not device name"];
         return;
     }
     
     NSData *nameData = [name dataUsingEncoding:NSUTF8StringEncoding];
-    
     //长度已处理
     NSUInteger length = nameData.length+4;
     Byte byteData[4] = {};
@@ -321,40 +471,31 @@ static const int PROTOCOL_STX_LEN = 1024;
 /** 固件升级 */
 - (void)startProgramUpdate:(NSString *)filePath updateprogress:(UpdateProgress)progress {
     
-    //TODO:TEST
-    
     if (!self.isUpdating) {
         
         self.updateInterval = [[NSDate date] timeIntervalSince1970];
         self.updateProgress = progress;
         
-//        NSData *fileData = [NSData dataWithContentsOfFile:filePath];
-//        NSString *fileName = [filePath lastPathComponent];
-//        long long fileSize = fileData.length;
+        NSData *fileData = [NSData dataWithContentsOfFile:filePath];
+        NSString *fileName = [filePath lastPathComponent];
+        long long fileSize = fileData.length;
 //        TBLog(@"==fileInfo==%@\n===%lld",fileName,fileSize);
         
-        NSData *fileData = [NSData dataWithContentsOfFile:[[NSBundle mainBundle]pathForResource:@"BL1175_V163bf" ofType:@"bin"]];
-        long long fileSize = fileData.length;
-        NSString *fileName = @"BL1175_V163bf.bin";
-
-        if (!filePath || filePath <=0 ) {
-            
-            TBLog(@"file no found");
+        [self printLog:[NSString stringWithFormat:@"==fileInfo==%@\n===%lld",fileName,fileSize]];
+        
+        if (!filePath || filePath.length <= 0 ) {
+            [self printLog:@"file no found"];
+            //TBLog(@"file no found");
             self.isUpdating = NO;
-            
             return;
         }
-        
         dispatch_async(dispatch_get_global_queue(0, 0), ^{
-            
             [self programUpdateStartFileData:fileData fileName:fileName fileSize:fileSize];
         });
         
     } else {
-        
-        TBLog(@"hardware is updating");
+        [self printLog:@"firmware is updating"];
     }
-
 }
 
 #pragma Mark -- StartUpdate
@@ -364,6 +505,9 @@ static const int PROTOCOL_STX_LEN = 1024;
     __weak typeof (self)weakSelf = self;
     
     self.isUpdating = YES;
+    
+    [self cancelProgamUpdateAction];
+    
     //请求数据包
     Byte checkbyte[] = {PROTOCOL_C};
     NSData * checkData = [NSData dataWithBytes:checkbyte length:sizeof(checkbyte)];
@@ -377,8 +521,9 @@ static const int PROTOCOL_STX_LEN = 1024;
     
     [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
         
-        TBLog(@"=start:=%@==%@",data,error);
-        
+        //TBLog(@"=start:=%@==%@",data,error);
+        [weakSelf cancelProgamUpdateAction];
+
         if ([checkData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
             //起始帧
             [weakSelf sendHeadDataFiledata:filedata fileName:fileName fileSize:fileSize result:^(NSData *data, NSError *error) {
@@ -386,7 +531,7 @@ static const int PROTOCOL_STX_LEN = 1024;
             }];
         } else if ([stopData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
             weakSelf.isUpdating = NO;
-            TBLog(@"==send data stop==");
+            [weakSelf printLog:@"==send data stop=="];
         }
         dispatch_async(dispatch_get_main_queue(), ^{
             if (weakSelf.updateProgress) {
@@ -428,9 +573,10 @@ static const int PROTOCOL_STX_LEN = 1024;
     [mudata appendData:[self createCRCData:data1]];
     
     __weak typeof (self)weakSelf = self;
+    [self cancelProgamUpdateAction];
 
     [self updateSendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-        TBLog(@"==起始帧结果:=%@==%@",data,error);
+        [weakSelf cancelProgamUpdateAction];
         //确认
         Byte ackbyte[] = {PROTOCOL_ACK};
         NSData * ackData = [NSData dataWithBytes:ackbyte length:sizeof(ackbyte)];
@@ -439,8 +585,11 @@ static const int PROTOCOL_STX_LEN = 1024;
         Byte checkbyte[] = {PROTOCOL_C};
         NSData * checkData = [NSData dataWithBytes:checkbyte length:sizeof(checkbyte)];
         
+        Byte stopbyte[] = {PROTOCOL_CA};
+        NSData * stopData = [NSData dataWithBytes:stopbyte length:sizeof(stopbyte)];
+        
         if ([ackData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
-            TBLog(@"数据帧开始");
+            //TBLog(@"数据帧开始");
             //数据帧开始
             weakSelf.currentSendCount = 1;
             [weakSelf sendFiledata:filedata result:^(NSData *data, NSError *error) {
@@ -450,6 +599,9 @@ static const int PROTOCOL_STX_LEN = 1024;
         } else if ([checkData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]){
             
             [weakSelf programUpdateStartFileData:filedata fileName:fileName fileSize:fileSize];
+        } else if ([stopData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
+            weakSelf.isUpdating = NO;
+            [weakSelf printLog:@"==send data stop=="];
         } else {
             weakSelf.isUpdating = NO;
         }
@@ -549,9 +701,10 @@ static const int PROTOCOL_STX_LEN = 1024;
         [mudata appendData:[self createCRCData:dataPackage]];
         
         __weak typeof (self)weakSelf = self;
+        [self cancelProgamUpdateAction];
 
         [self updateSendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-            
+            [weakSelf cancelProgamUpdateAction];
             dispatch_async(dispatch_get_main_queue(), ^{
                 if (weakSelf.updateProgress) {
                     weakSelf.updateProgress(data, (CGFloat)weakSelf.currentSendCount/dataPackArray.count, error,YES);
@@ -568,7 +721,7 @@ static const int PROTOCOL_STX_LEN = 1024;
             NSData * stopData = [NSData dataWithBytes:stopbyte length:sizeof(stopbyte)];
             
             if ([checkData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
-                TBLog(@"==send success next data block==");
+                //TBLog(@"==send success next data block==");
                 //下一帧
                 if (weakSelf.currentSendCount == dataPackArray.count) {
                     //最后一帧数据帧成功,回调
@@ -582,13 +735,17 @@ static const int PROTOCOL_STX_LEN = 1024;
                 
             } else if ([checkDatac isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
                 //重发一次
-                TBLog(@"==重复一帧==");
+                //TBLog(@"==重复一帧==");
                 [weakSelf sendFileBlockDataArray:dataPackArray result:^(NSData *data, NSError *error) {
                 }];
                 
             } else if ([stopData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]){
                 //终止传输
-                TBLog(@"==终止一帧==");
+                //TBLog(@"==终止一帧==");
+                weakSelf.isUpdating = NO;
+                [weakSelf printLog:@"==send data stop=="];
+
+            } else {
                 weakSelf.isUpdating = NO;
             }
         }];
@@ -610,17 +767,25 @@ static const int PROTOCOL_STX_LEN = 1024;
     Byte byte[] = {PROTOCOL_EOT};
     NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
     
+    Byte stopbyte[] = {PROTOCOL_CA};
+    NSData * stopData = [NSData dataWithBytes:stopbyte length:sizeof(stopbyte)];
+    
     __weak typeof (self)weakSelf = self;
-
+    [self cancelProgamUpdateAction];
     [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-        
-        TBLog(@"=End Data:EOT=%@===%@",data,error);
+        [weakSelf cancelProgamUpdateAction];
+        //TBLog(@"=End Data:EOT=%@===%@",data,error);
         if ([nakData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
             
             [weakSelf sendDataEnd];
             
         } else if ([ackData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
             [weakSelf programUpdateSuccess];
+        } else if ([stopData isEqual:[data subdataWithRange:NSMakeRange(0, 1)]]) {
+            weakSelf.isUpdating = NO;
+            [weakSelf printLog:@"==send data stop=="];
+        } else {
+            weakSelf.isUpdating = NO;
         }
     }];
 }
@@ -647,18 +812,34 @@ static const int PROTOCOL_STX_LEN = 1024;
     [mudata appendData:data_];
     [mudata appendData:[self createCRCData:data_]];
     __weak typeof (self)weakSelf = self;
-
+    [self cancelProgamUpdateAction];
     [self updateSendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-        TBLog(@"==success data:==%@",data);
+        [weakSelf cancelProgamUpdateAction];
         weakSelf.isUpdating = NO;
         weakSelf.updateInterval = [[NSDate date] timeIntervalSince1970] - weakSelf.updateInterval;
-        TBLog(@"==update sum time:=%f",weakSelf.updateInterval);
         dispatch_async(dispatch_get_main_queue(), ^{
             if (weakSelf.updateProgress) {
                 weakSelf.updateProgress(data, 1.0, error,NO);
             }
         });
     }];
+}
+
+- (void)cancelProgamUpdate {
+    self.shutdownUpdate = YES;
+}
+
+- (void)cancelProgamUpdateAction {
+    __weak typeof (self)weakSelf = self;
+    if (self.isUpdating && self.shutdownUpdate) {
+        Byte stopbyte[] = {PROTOCOL_CA,PROTOCOL_CA,PROTOCOL_CA};
+        NSData * stopData = [NSData dataWithBytes:stopbyte length:sizeof(stopbyte)];
+        self.shutdownUpdate = NO;
+        self.isUpdating = NO;
+        [self.centralManager sendData:stopData result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+            [weakSelf printLog:[NSString stringWithFormat:@"===shutdown firmware update:===%@",data]];
+        }];
+    }
 }
 
 #pragma Mark -- AdditionsMethod
@@ -675,9 +856,9 @@ static const int PROTOCOL_STX_LEN = 1024;
 }
 
 //发送最后一块数据成功才会回调
-- (void)updateSendData:(NSData *)data result:(nonnull sendDataCallback)result{
+- (void)updateSendData:(NSData *)data result:(nonnull sendDataCallback)result {
     
-    int maxlength = 150;
+    int maxlength = 180;
     
     if (data.length > maxlength) {
         
@@ -773,6 +954,19 @@ static unsigned short crc16(const unsigned char *buf, unsigned long count)
         }
     }
     return crc;
+}
+
+- (void)destoryTimer {
+    if (self.timer) {
+        [self.timer invalidate];
+        self.timer = nil;
+    }
+}
+
+- (void)printLog:(NSString *)log {
+    if (self.openLog) {
+        NSLog(@"%@",log);
+    }
 }
 
 @end

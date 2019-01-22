@@ -14,7 +14,7 @@
             buildForArchiving = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "A1225EE518C582C2A7324D3A43A3ED55"
+               BlueprintIdentifier = "5C6D9C76EE6EEFE5A2FA630306585F17"
                BlueprintName = "Pods-TBBluetoothSDK"
                ReferencedContainer = "container:Pods.xcodeproj"
                BuildableName = "libPods-TBBluetoothSDK.a">

@@ -22,7 +22,6 @@
 //蓝牙设备服务的特征,有回应
 @property (nonatomic, strong) CBCharacteristic  *characNotifyReponse;
 
-
 @property (nonatomic, copy) sendDataCallback result;
 
 @end
@@ -32,7 +31,7 @@
 - (CBCentralManager *)centralManager {
     
     if (!_centralManager) {
-        _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil options:nil];
+        _centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     
     }
     return _centralManager;
@@ -74,7 +73,6 @@
 }
 
 - (void)connectDevice {
-    
     self.autoConnectDevice = YES;
     [self.centralManager stopScan];
     [self connectDevice:nil];
@@ -94,14 +92,11 @@
     }
     //...在此连接设备
     if (peripher) {
-        
         self.cbPeripheral = peripher;
         self.connectState = TBDeviceConnectStateConnecting;
         [self.centralManager connectPeripheral:self.cbPeripheral options:nil];
-        
     } else {
-        
-        TBLog(@"no found target device");
+        //TBLog(@"no found target device");
     }
 }
 
@@ -109,12 +104,23 @@
 - (void)sendData:(NSData *)data result:(sendDataCallback)result {
     
     if (self.cbPeripheral && self.service && self.characNoReponse && self.enableBluetooth && self.characNotifyReponse) {
-        
+        self.result = nil;
         self.result = result;
-
         [self.cbPeripheral writeValue:data forCharacteristic:self.characNoReponse type:CBCharacteristicWriteWithoutResponse];
-        
         [self.cbPeripheral setNotifyValue:YES forCharacteristic:self.characNotifyReponse];
+        
+    } else {
+        NSString *str  = @"";
+        if (!self.service) {
+            str  = @"= data send fail by no service UUID FF00 =";
+        } else if (!self.characNoReponse) {
+            str  = @"= data send fail by no service UUID FF01 =";
+
+        } else if (!self.characNotifyReponse) {
+            str  = @"= data send fail by no service UUID FF02 =";
+        }
+        //[self printLog:str];
+        //[[NSNotificationCenter defaultCenter]postNotificationName:@"ErrorInfo" object:nil userInfo:@{@"tip":str}];
     }
 }
 
@@ -186,8 +192,6 @@
         if (central.state != CBCentralManagerStatePoweredOn) {
             [[NSNotificationCenter defaultCenter]postNotificationName:kTBBluetoothCentralDeviceStateOFFNotification object:@(central.state == CBCentralManagerStatePoweredOn)];
         }
-
-    
 }
 
 /**
@@ -203,7 +207,6 @@
     //已经扫描到外部设备--显示出来
     if (![self.peripherals containsObject:peripheral]) {
         [self.peripherals addObject:peripheral];
-        TBLog(@"==scan devices:=%@",peripheral);
         //扫描到目标设备
         if ([self isTargetDevice:peripheral]) {
             if (self.delegate && [self.delegate respondsToSelector:@selector(scanTargetDevice:)]) {
@@ -214,7 +217,6 @@
         if (self.delegate && [self.delegate respondsToSelector:@selector(didDiscoverDeviceList:)]) {
             [self.delegate didDiscoverDeviceList:self.peripherals];
         }
-        
     }
 }
 
@@ -301,11 +303,11 @@
  */
 
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
+    
     for (CBCharacteristic *character in service.characteristics) {
         if ([self isTargetNoResponseCharacterise:character]) {
             self.characNoReponse = character;
         }
-        
         if ([self isTargetResponseCharacterise:character]) {
             self.characNotifyReponse = character;
         }
@@ -328,6 +330,8 @@
     if (self.result) {
         NSData *data = characteristic.value;
         self.result(data, error);
+    } else {
+        TBLog(@"==No response==");
     }
 }
 
@@ -349,7 +353,7 @@
 - (BOOL)isTargetService:(CBService *)service {
     
     NSString *uuid = service.UUID.UUIDString;
-    if ([uuid isEqualToString:kNotifyServerUUID]||[uuid isEqualToString:kWriteServerUUID]) {
+    if ([uuid isEqualToString:kWriteServerUUID]) {
         return YES;
     }
     return NO;
@@ -357,7 +361,7 @@
 
 //判断目标设备的目标服务的目标特征--无响应
 - (BOOL)isTargetNoResponseCharacterise:(CBCharacteristic *)characterise {
-    
+
     NSString *uuid = characterise.UUID.UUIDString;
     if ([uuid isEqualToString:kWriteNOResponseCharacteristicUUID]) {
         return YES;
@@ -373,6 +377,11 @@
         return YES;
     }
     return NO;
+}
+
+- (void)printLog:(NSString *)log {
+    
+    TBLog(@"%@",log);
 }
 
 @end

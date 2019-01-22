@@ -8,5 +8,7 @@ target 'TBBluetoothSDK' do
   # Pods for TBBluetoothSDK
   
   pod 'MBProgressHUD', '~> 1.1.0'
-
+  pod 'AFNetworking'
+  
+  
 end

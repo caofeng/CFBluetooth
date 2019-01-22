@@ -21,13 +21,14 @@
     // Override point for customization after application launch.
     
     [TBBLEManager initSDK];
+    [[TBBLEManager shareManager]setLogOpen:YES];
+    
+    [NSData dataWithContentsOfURL:[NSURL URLWithString:@"https://www.baidu.com"]];
     
     UIStoryboard *sb = [UIStoryboard storyboardWithName:@"Main" bundle:nil];
     ViewController *vc = [sb instantiateInitialViewController];
     UINavigationController *nav = [[UINavigationController alloc]initWithRootViewController:vc];
     self.window.rootViewController = nav;
-    
-    TBLog(@"==NSHomeDirectory:=%@",NSHomeDirectory());
     
     return YES;
 }
