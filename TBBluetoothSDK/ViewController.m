@@ -101,15 +101,15 @@
     }
 
     
-    [[TBBLEManager shareManager]get_StatusWithInterval:750 callback:^(NSData *data, NSError *error) {
+    [[TBBLEManager shareManager]get_StatusWithInterval:5000 callback:^(NSData *data, NSError *error) {
         NSLog(@"==getStatus=%@",data);
     }];
-    
-    [[TBBLEManager shareManager]getLifeWithInterval:750 callback:^(NSData *data, NSError *error) {
+
+    [[TBBLEManager shareManager]getLifeWithInterval:3000 callback:^(NSData *data, NSError *error) {
         NSLog(@"==getLife=%@",data);
     }];
-    
-    [[TBBLEManager shareManager]backupsWithInterval:750 callback:^(NSData *data, NSError *error) {
+
+    [[TBBLEManager shareManager]backupsWithInterval:1000 callback:^(NSData *data, NSError *error) {
         NSLog(@"==backups=%@",data);
     }];
 }
@@ -144,15 +144,19 @@
             }
         }];
 
-    }else if (index == 1) {
-        [[TBBLEManager shareManager] keyRight:^(NSData *data, NSError *error) {
-            if (error) {
-                self.callbackLabel.text = [error localizedDescription];
-            } else {
-                self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
-            }
-            
-        }];
+    } else if (index == 1) {
+        
+        for (int i=0; i<6; i++) {
+            [[TBBLEManager shareManager] keyRight:^(NSData *data, NSError *error) {
+                NSLog(@"===keyright=%@",data);
+                if (error) {
+                    self.callbackLabel.text = [error localizedDescription];
+                } else {
+                    self.callbackLabel.text = [NSString stringWithFormat:@"%@",data];
+                }
+                
+            }];
+        }
 
     }else if (index == 2) {
         [[TBBLEManager shareManager] keyRDown:^(NSData *data, NSError *error) {

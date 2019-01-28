@@ -20,7 +20,6 @@ static const int PROTOCOL_C = 0x43;
 static const int PROTOCOL_SOH_LEN = 128;
 static const int PROTOCOL_STX_LEN = 1024;
 
-
 @interface TBBLEManager ()<TBCentralManagerDelegate>
 
 @property (nonatomic, strong) TBCentralManager *centralManager;
@@ -46,9 +45,14 @@ static const int PROTOCOL_STX_LEN = 1024;
 @property (nonatomic, copy)ResultCmd    backupsCallback;
 @property (nonatomic, assign)NSTimeInterval backupsInterval;
 
-@property (nonatomic, strong)NSTimer    *timer;
+@property (nonatomic, strong)NSTimer    *statusTimer;
+@property (nonatomic, strong)NSTimer    *lifeTimer;
+@property (nonatomic, strong)NSTimer    *backupsTimer;
+
 
 @property (nonatomic, assign) BOOL shutdownUpdate;
+
+@property dispatch_queue_t queue;
 
 @end
 
@@ -78,7 +82,7 @@ static const int PROTOCOL_STX_LEN = 1024;
         self.getStatusInterval = 750;
         self.getLifeInterval = 750;
         self.backupsInterval = 750;
-
+        self.queue = dispatch_queue_create("TBBluetoothQueue", DISPATCH_QUEUE_SERIAL);
     }
     return self;
 }
@@ -205,9 +209,20 @@ static const int PROTOCOL_STX_LEN = 1024;
     [self printLog:@"Listening to status"];
     
     [self destoryTimer];
-    self.timer = [NSTimer scheduledTimerWithTimeInterval:(self.getStatusInterval+self.getLifeInterval+self.backupsInterval)/1000.0 target:self selector:@selector(sendGetStatusCommand) userInfo:nil repeats:YES];
-    [[NSRunLoop currentRunLoop] addTimer:self.timer forMode:NSRunLoopCommonModes];
-    [self.timer fire];
+    
+    //状态
+    self.statusTimer = [NSTimer scheduledTimerWithTimeInterval:self.getStatusInterval/1000.0 target:self selector:@selector(sendGetStatusCommand) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.statusTimer forMode:NSRunLoopCommonModes];
+    [self.statusTimer fire];
+    
+    //life
+    self.lifeTimer = [NSTimer scheduledTimerWithTimeInterval:self.getLifeInterval/1000.0 target:self selector:@selector(sendGetLifeCommand) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.lifeTimer forMode:NSRunLoopCommonModes];
+    [self.lifeTimer fire];
+    
+    self.backupsTimer = [NSTimer scheduledTimerWithTimeInterval:self.backupsInterval/1000.0 target:self selector:@selector(sendBackupsCommand) userInfo:nil repeats:YES];
+    [[NSRunLoop currentRunLoop] addTimer:self.backupsTimer forMode:NSRunLoopCommonModes];
+    [self.backupsTimer fire];
 }
 
 #pragma Mark -- 业务
@@ -216,7 +231,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     
     Byte byte[] = {0xA5,0x01,0x56};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -226,7 +241,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     
     Byte byte[] = {0xA5,0x02,0xA8};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -236,7 +251,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     
     Byte byte[] = {0xA5,0x03,0x57};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -248,7 +263,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     Byte byte[] = {0xA5,0x04,0xAB};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
     
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -259,7 +274,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     Byte byte[] = {0xA5,0x05,0x54};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
     
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -270,7 +285,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     Byte byte[] = {0xA5,0x06,0xAA};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
     
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -281,29 +296,27 @@ static const int PROTOCOL_STX_LEN = 1024;
     Byte byte[] = {0xA5,0x07,0x55};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
 
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
     }];
-    
 }
 - (void)keyAuto:(ResultCmd)result {
     
     Byte byte[] = {0xA5,0x08,0xAD};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
     }];
-
 }
 - (void)keyPulse:(ResultCmd)result {
     
     Byte byte[] = {0xA5,0x09,0x52};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -313,7 +326,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     
     Byte byte[] = {0xA5,0x0A,0xAC};
     NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:data result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -338,7 +351,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     NSData *crcData = [NSData dataWithBytes:crcByte length:sizeof(crcByte)];
     [mudata appendData:crcData];
     
-    [self.centralManager sendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:mudata result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -352,25 +365,22 @@ static const int PROTOCOL_STX_LEN = 1024;
 }
 
 - (void)sendGetStatusCommand {
+    
     __weak typeof(self) weakSelf = self;
     
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.getStatusInterval/1000.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
-            
-            Byte byte[] = {0xA5,0x0F,0x51};
-            
-            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
-            
-            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-                
+    if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+        Byte byte[] = {0xA5,0x0F,0x51};
+        NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+        [self handleSendData:data_ result:^(NSData *data, NSError *error) {
+            if (data && data.length>3) {
+                NSMutableData *mudata = [NSMutableData dataWithData:data];
+                [mudata replaceBytesInRange:NSMakeRange(0, 3) withBytes:NULL length:0];
                 if (weakSelf.getStatusCallback) {
-                    weakSelf.getStatusCallback(data,error);
+                    weakSelf.getStatusCallback(mudata,error);
                 }
-                [weakSelf sendGetLifeCommand];
-            }];
-        }
-    });
+            }
+        }];
+    }
 }
 
 - (void)getLifeWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback {
@@ -380,24 +390,20 @@ static const int PROTOCOL_STX_LEN = 1024;
 }
 
 - (void)sendGetLifeCommand {
-    
     __weak typeof(self) weakSelf = self;
-    
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((self.getLifeInterval/1000.0) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        
-        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
-            
-            Byte byte[] = {0xA5,0x11,0x5E};
-            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
-            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-                if (weakSelf.getLifeCallback) {
-                    weakSelf.getLifeCallback(data,error);
+    if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+        Byte byte[] = {0xA5,0x11,0x5E};
+        NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+        [self handleSendData:data_ result:^(NSData *data, NSError *error) {
+            if (weakSelf.getLifeCallback) {
+                if (data && data.length>3) {
+                    NSMutableData *mudata = [NSMutableData dataWithData:data];
+                    [mudata replaceBytesInRange:NSMakeRange(0, 3) withBytes:NULL length:0];
+                    weakSelf.getLifeCallback(mudata,error);
                 }
-                [weakSelf sendBackupsCommand];
-            }];
-        }
-        
-    });
+            }
+        }];
+    }
 }
 
 - (void)backupsWithInterval:(NSTimeInterval)interval callback:(ResultCmd)callback {
@@ -409,17 +415,19 @@ static const int PROTOCOL_STX_LEN = 1024;
 - (void)sendBackupsCommand {
     
     __weak typeof(self) weakSelf = self;
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(self.backupsInterval/1000.0 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
-        if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
-            Byte byte[] = {0xA5,0x0E,0xAE};
-            NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
-            [self.centralManager sendData:data_ result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
-                if (weakSelf.backupsCallback) {
-                    weakSelf.backupsCallback(data,error);
+    if (self.connectState == TBDeviceConnectStateConnected && !self.isUpdating) {
+        Byte byte[] = {0xA5,0x0E,0xAE};
+        NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+        [self handleSendData:data_ result:^(NSData *data, NSError *error) {
+            if (weakSelf.backupsCallback) {
+                if (data && data.length>3) {
+                    NSMutableData *mudata = [NSMutableData dataWithData:data];
+                    [mudata replaceBytesInRange:NSMakeRange(0, 3) withBytes:NULL length:0];
+                    weakSelf.backupsCallback(mudata,error);
                 }
-            }];
-        }
-    });
+            }
+        }];
+    }
 }
 
 - (void)setPhoneName:(NSString *)name result:(ResultCmd)result  {
@@ -448,7 +456,7 @@ static const int PROTOCOL_STX_LEN = 1024;
     NSData *crcData = [NSData dataWithBytes:crcByte length:sizeof(crcByte)];
     [mudata appendData:crcData];
     
-    [self.centralManager sendData:mudata result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    [self handleSendData:mudata result:^(NSData *data, NSError *error) {
         if (result) {
             result(data,error);
         }
@@ -458,10 +466,14 @@ static const int PROTOCOL_STX_LEN = 1024;
 - (void)getVersion:(ResultCmd)result {
     
     Byte byte[] = {0xA5,0x13,0x5F};
-    NSData *data = [NSData dataWithBytes:byte length:sizeof(byte)];
-    [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+    NSData *data_ = [NSData dataWithBytes:byte length:sizeof(byte)];
+    [self handleSendData:data_ result:^(NSData *data, NSError *error) {
         if (result) {
-            result(data,error);
+            if (data && data.length>3) {
+                NSMutableData *mudata = [NSMutableData dataWithData:data];
+                [mudata replaceBytesInRange:NSMakeRange(0, 3) withBytes:NULL length:0];
+                    result(mudata,error);
+            }
         }
     }];
 }
@@ -855,6 +867,21 @@ static const int PROTOCOL_STX_LEN = 1024;
     return crcdata;
 }
 
+//-------------------------------------------------
+
+- (void)handleSendData:(NSData *)data result:(ResultCmd)result {
+    dispatch_async(self.queue, ^{
+        [self.centralManager sendData:data result:^(NSData * _Nonnull data, NSError * _Nonnull error) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                result(data,error);
+            });
+        }];
+        [NSThread sleepForTimeInterval:0.15];
+    });
+}
+
+//-------------------------------------------------
+
 //发送最后一块数据成功才会回调
 - (void)updateSendData:(NSData *)data result:(nonnull sendDataCallback)result {
     
@@ -957,9 +984,17 @@ static unsigned short crc16(const unsigned char *buf, unsigned long count)
 }
 
 - (void)destoryTimer {
-    if (self.timer) {
-        [self.timer invalidate];
-        self.timer = nil;
+    if (self.statusTimer) {
+        [self.statusTimer invalidate];
+        self.statusTimer = nil;
+    }
+    if (self.lifeTimer) {
+        [self.lifeTimer invalidate];
+        self.lifeTimer = nil;
+    }
+    if (self.backupsTimer) {
+        [self.backupsTimer invalidate];
+        self.backupsTimer = nil;
     }
 }
 
